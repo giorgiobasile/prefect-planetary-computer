@@ -64,7 +64,22 @@ class PlanetaryComputerCredentials(Block):
 
         Returns:
             A Dask Gateway client to instantiate clusters.
-        """
+
+        Example:
+            Get a configured Dask Gateway client:
+            ```python
+            from prefect_planetary_computer.earthdata import EarthdataCredentials
+
+            pc_credentials_block = PlanetaryComputerCredentials(
+                subscription_key = "sub-key",
+                hub_api_token = "hub-token"
+            )
+            gateway_client = pc_credentials_block.get_gateway_client()
+
+            # List available clusters
+            gateway_client.list_clusters()
+            ```
+        """  # noqa E501
         if self.hub_api_token is None:
             raise ValueError("JupyterHub API Token hasn't been provided.")
 
