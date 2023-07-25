@@ -112,3 +112,7 @@ to force column width */
 [data-md-color-scheme="slate"] .prefect-table th {
     background-color: #3b3d54;
 }
+
+.pc-banner {
+    height: 100px !important;
+}
