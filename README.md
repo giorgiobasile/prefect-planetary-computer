@@ -22,7 +22,7 @@ Visit the full docs [here](https://giorgiobasile.github.io/prefect-planetary-com
 
 Prefect integrations with Microsoft Planetary Computer.
 
-<a href="https://planetarycomputer.microsoft.com/"><img src="https://camo.githubusercontent.com/55810ac9ab5a7f4bb66d532d6c6afd26ef926a0c2436d506a91bb439a4983194/68747470733a2f2f6169346564617461736574737075626c69636173736574732e626c6f622e636f72652e77696e646f77732e6e65742f6173736574732f616f645f696d616765732f706c616e65746172795f636f6d70757465725f6865616465725f383030772e706e67" height=100/></a>
+<a href="https://planetarycomputer.microsoft.com/"><img src="https://camo.githubusercontent.com/55810ac9ab5a7f4bb66d532d6c6afd26ef926a0c2436d506a91bb439a4983194/68747470733a2f2f6169346564617461736574737075626c69636173736574732e626c6f622e636f72652e77696e646f77732e6e65742f6173736574732f616f645f696d616765732f706c616e65746172795f636f6d70757465725f6865616465725f383030772e706e67" class="pc-banner" height=100/></a>
 
 
 <!--- ### Add a real-world example of how to use this Collection here
