@@ -25,4 +25,5 @@ Released on ????? ?th, 20??.
 
 ### Added
 
-- `task_name` task - [#1](https://github.com/giorgiobasile/prefect-planetary-computer/pull/1)
+- Added Planetary Computer credentials block and Dask Gateway client - [#7](https://github.com/giorgiobasile/prefect-planetary-computer/pull/7)
+- Added method to programmatically instatiate new Dask clusters - [#8](https://github.com/giorgiobasile/prefect-planetary-computer/pull/8)

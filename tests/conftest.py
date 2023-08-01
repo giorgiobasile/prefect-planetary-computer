@@ -1,7 +1,9 @@
 import json
+from unittest.mock import MagicMock
 
 import pytest
 import requests_mock
+from dask_gateway import Gateway, GatewayCluster
 from importlib_resources import files
 from prefect.testing.utilities import prefect_test_harness
 
@@ -32,7 +34,7 @@ def reset_object_registry():
 
 
 @pytest.fixture
-def pc_stac_mock_responses():
+def mock_pc_stac_responses():
     with requests_mock.Mocker() as m:
         with files("data").joinpath("stac-catalog-response.json").open(
             "r"
@@ -44,12 +46,23 @@ def pc_stac_mock_responses():
                 json=stac_catalog_response,
                 status_code=200,
             )
-            yield m
+
+        yield m
 
 
 @pytest.fixture
-def pc_credentials_block(monkeypatch, pc_stac_mock_responses):  # noqa
-    monkeypatch.setattr(
-        "prefect_planetary_computer.credentials.GATEWAY_ADDRESS", "127.0.0.1"
+async def mock_gateway_cluster(monkeypatch):
+    def mock_new_cluster(*args, **kwargs):  # noqa
+        cluster = MagicMock(spec=GatewayCluster)
+        cluster.name = "test-cluster"
+        cluster.status = "running"
+        return cluster
+
+    monkeypatch.setattr(Gateway, "new_cluster", mock_new_cluster)
+
+
+@pytest.fixture
+def pc_credentials_block(mock_pc_stac_responses, mock_gateway_cluster):  # noqa
+    return PlanetaryComputerCredentials(
+        hub_api_token="fake-token", subscription_key="fake-key"
     )
-    return PlanetaryComputerCredentials(hub_api_token="fake-token")
