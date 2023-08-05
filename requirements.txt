@@ -1,4 +1,5 @@
 prefect>=2.0.0
+prefect-dask
 planetary-computer
 dask-gateway
 pystac-client
