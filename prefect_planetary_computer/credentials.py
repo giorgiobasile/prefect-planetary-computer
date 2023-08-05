@@ -26,6 +26,10 @@ class PlanetaryComputerCredentials(Block):
     [JupyterHub API token](https://planetarycomputer.microsoft.com/docs/concepts/computing/#request-a-token-from-jupyterhub)
     to instantiate clusters through Dask Gateway.
 
+    Args:
+        subscription_key: A subscription key to access the full PC data catalog.
+        hub_api_token: The JupyterHub API token to instantiate clusters through Dask Gateway.
+
     Example:
         Load stored Planetary Computer credentials:
         ```python
@@ -51,11 +55,13 @@ class PlanetaryComputerCredentials(Block):
 
     def get_stac_catalog(self, **pystac_kwargs) -> pystac_client.Client:
         """
-        Provides a PySTAC client for the PC data catalog, automatically signing items as they are retrieved.
+        Provides a [PySTAC client](https://pystac-client.readthedocs.io/en/stable/api.html#client) for the PC data catalog,
+        automatically signing items as they are retrieved.
+
         For more information about PC signing, refer to the [docs](https://planetarycomputer.microsoft.com/docs/concepts/sas).
 
         Args:
-            pystac_kwargs: Additional keyword arguments to pass to the [pystac_client.Client.open](https://pystac-client.readthedocs.io/en/stable/api.html#pystac_client.Client.open) method.
+            pystac_kwargs: Additional keyword arguments to pass to the [`pystac_client.Client.open`](https://pystac-client.readthedocs.io/en/stable/api.html#pystac_client.Client.open) method.
 
         Returns:
             A PySTAC client for the PC Catalog.
@@ -160,8 +166,9 @@ class PlanetaryComputerCredentials(Block):
         Args:
             worker_cores: Number of cores per worker, in the 0.1-8 range. Defaults to 1.
             worker_memory: Amount of memory per worker (in GiB) in the 1-64 range. Defaults to 8.
-            image: The Docker image to be used for the workers. Defaults to [pangeo/pangeo-notebook:latest](https://hub.docker.com/layers/pangeo/pangeo-notebook/latest/images/sha256-94e97e24adf14e72c01f18c782b8c4e0efb1e05950a5f2d2e86e67adcbf547f8)
-                To use the PC official images, refer to the [planetary-computer-containers](https://github.com/Microsoft/planetary-computer-containers) repo.
+            image: The Docker image to be used for the workers.
+                Defaults to [`pangeo/pangeo-notebook:latest`](https://hub.docker.com/layers/pangeo/pangeo-notebook/latest/images/sha256-94e97e24adf14e72c01f18c782b8c4e0efb1e05950a5f2d2e86e67adcbf547f8)
+                To use the PC official images, refer to the [`planetary-computer-containers`](https://github.com/Microsoft/planetary-computer-containers) repo.
             gpu: Whether to use GPU workers. Defaults to False.
             environment: Environment variables to set on the workers. Defaults to the GDAL and PYGEOS-related variables set in the PC Hub.
             gateway_cluster_kwargs: Additional keyword arguments to pass to [`dask_gateway.GatewayCluster`](https://gateway.dask.org/api-client.html#dask_gateway.GatewayCluster) constructor.
