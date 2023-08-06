@@ -27,8 +27,8 @@ class PlanetaryComputerCredentials(Block):
     to instantiate clusters through Dask Gateway.
 
     Args:
-        subscription_key: A subscription key to access the full PC data catalog.
-        hub_api_token: The JupyterHub API token to instantiate clusters through Dask Gateway.
+        subscription_key (str): A subscription key to access the full PC data catalog.
+        hub_api_token (str): The JupyterHub API token to instantiate clusters through Dask Gateway.
 
     Example:
         Load stored Planetary Computer credentials:
@@ -53,15 +53,20 @@ class PlanetaryComputerCredentials(Block):
         title="JupyterHub API Token",
     )
 
-    def get_stac_catalog(self, **pystac_kwargs) -> pystac_client.Client:
+    def get_stac_catalog(
+        self, sign_inplace: bool = True, **pystac_kwargs
+    ) -> pystac_client.Client:
         """
         Provides a [PySTAC client](https://pystac-client.readthedocs.io/en/stable/api.html#client) for the PC data catalog,
-        automatically signing items as they are retrieved.
+        optionally signing items automatically as they are retrieved.
 
         For more information about PC signing, refer to the [docs](https://planetarycomputer.microsoft.com/docs/concepts/sas).
 
         Args:
-            pystac_kwargs: Additional keyword arguments to pass to the [`pystac_client.Client.open`](https://pystac-client.readthedocs.io/en/stable/api.html#pystac_client.Client.open) method.
+            sign_inplace: Whether to automatically sign items through the
+                [planetary_computer.sign_inplace](https://github.com/microsoft/planetary-computer-sdk-for-python#automatic-signing) modifier.
+            pystac_kwargs: Additional keyword arguments to pass to the
+                [`pystac_client.Client.open`](https://pystac-client.readthedocs.io/en/stable/api.html#pystac_client.Client.open) method.
 
         Returns:
             A PySTAC client for the PC Catalog.
@@ -95,8 +100,10 @@ class PlanetaryComputerCredentials(Block):
                 self.subscription_key.get_secret_value()
             )
 
+        modifier = planetary_computer.sign_inplace if sign_inplace else None
+
         return pystac_client.Client.open(
-            CATALOG_URL, modifier=planetary_computer.sign_inplace, **pystac_kwargs
+            CATALOG_URL, modifier=modifier, **pystac_kwargs
         )
 
     def get_dask_gateway(self, **gateway_kwargs) -> dask_gateway.Gateway:
