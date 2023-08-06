@@ -6,10 +6,8 @@ inheriting from [`prefect_dask.DaskTaskRunner`](https://prefecthq.github.io/pref
 from dask_gateway.auth import JupyterHubAuth
 from prefect_dask import DaskTaskRunner
 
-from prefect_planetary_computer.credentials import PlanetaryComputerCredentials
-
-GATEWAY_ADDRESS = "https://pccompute.westeurope.cloudapp.azure.com/compute/services/dask-gateway"  # noqa E501
-GATEWAY_PROXY_ADDRESS = "gateway://pccompute-dask.westeurope.cloudapp.azure.com:80"
+from prefect_planetary_computer import PlanetaryComputerCredentials
+from prefect_planetary_computer.constants import GATEWAY_ADDRESS, GATEWAY_PROXY_ADDRESS
 
 
 class PlanetaryComputerTaskRunner(DaskTaskRunner):

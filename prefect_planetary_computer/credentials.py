@@ -9,12 +9,11 @@ from dask_gateway.auth import JupyterHubAuth
 from prefect.blocks.core import Block
 from pydantic import Field, SecretStr
 
-CATALOG_URL = "https://planetarycomputer.microsoft.com/api/stac/v1/"
-
-GATEWAY_ADDRESS = (
-    "https://pccompute.westeurope.cloudapp.azure.com/compute/services/dask-gateway"
+from prefect_planetary_computer.constants import (
+    CATALOG_URL,
+    GATEWAY_ADDRESS,
+    GATEWAY_PROXY_ADDRESS,
 )
-GATEWAY_PROXY_ADDRESS = "gateway://pccompute-dask.westeurope.cloudapp.azure.com:80"
 
 
 class PlanetaryComputerCredentials(Block):
