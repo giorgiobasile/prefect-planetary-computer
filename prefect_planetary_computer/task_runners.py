@@ -64,9 +64,12 @@ class PlanetaryComputerTaskRunner(DaskTaskRunner):
         )
         ```
 
-        Connecting to an existing PC dask cluster (use the base `DaskTaskRunner` for this):
+        Connecting to an existing PC `GatewayCluster` (use the base `DaskTaskRunner` for this):
         ```python
-        DaskTaskRunner(address="gateway://pccompute-dask.westeurope.cloudapp.azure.com:80/prod.93548eccd90042078bbf124f932acd6d")
+        DaskTaskRunner(
+            address=cluster.address,
+            client_kwargs={'security': cluster.security}
+        )
         ```
 
     """  # noqa: E501
