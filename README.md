@@ -20,53 +20,23 @@
 
 Visit the full docs [here](https://giorgiobasile.github.io/prefect-planetary-computer) to see additional examples and the API reference.
 
-Prefect integrations with [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/).
+Prefect integrations with the [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/).
 
 <a href="https://planetarycomputer.microsoft.com/"><img src="https://camo.githubusercontent.com/55810ac9ab5a7f4bb66d532d6c6afd26ef926a0c2436d506a91bb439a4983194/68747470733a2f2f6169346564617461736574737075626c69636173736574732e626c6f622e636f72652e77696e646f77732e6e65742f6173736574732f616f645f696d616765732f706c616e65746172795f636f6d70757465725f6865616465725f383030772e706e67" class="pc-banner" height=100/></a>
 
-## Getting started
+## Overview
 
 This collection provides:
 
 - 🔑 A [credentials block](https://github.com/giorgiobasile/prefect-planetary-computer/) block to store and retrieve a subscription key and a Jupyter Hub token.
 - 🌍 A configured [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
 - 💻 A configured [Dask Gateway client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_gateway) to programmatically instantiate new Dask clusters and submit distributed computations.
-- 🚀 A [task runner](https://github.com/giorgiobasile/prefect-planetary-computer/task_runners/#prefect_planetary_computer.task_runners.PlanetaryComputerTaskRunner) to automatically instatiate temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
+- 🚀 A [task runner](https://github.com/giorgiobasile/prefect-planetary-computer/task_runners/#prefect_planetary_computer.task_runners.PlanetaryComputerTaskRunner) based on [`prefect_dask.DaskTaskRunner`](https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner) to automatically instatiate temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
 
-For more information on using Azure services with Prefect and the Microsoft Planetary Computer, check out the [prefect-azure](https://github.com/PrefectHQ/prefect-azure/) collection.
+For more information on:
 
-### Reading from the STAC API
-
-???+ note
-    Example adapted from [Planetary Computer - Reading Data from the STAC API](https://planetarycomputer.microsoft.com/docs/quickstarts/reading-stac/).
-
-```python
-
-# TODO
-
-```
-
-### Scale with Dask
-
-???+ note
-    Example adapted from [Planetary Computer - Scale with Dask](https://planetarycomputer.microsoft.com/docs/quickstarts/scale-with-dask/).
-
-```python
-
-# TODO
-
-```
-
-### Writing outputs to Azure Blob Storage
-
-???+ note
-    Example adapted from [Planetary Computer - Writing outputs to Azure Blob Storage](https://planetarycomputer.microsoft.com/docs/quickstarts/storage/).
-
-```python
-
-# TODO
-
-```
+- using Azure services with Prefect and the Planetary Computer, check out the [`prefect-azure`](https://github.com/PrefectHQ/prefect-azure/) collection.
+- how to take advantage of the Planetary Computer data catalog and compute resources, check out the [Planetary Computer documentation](https://planetarycomputer.microsoft.com/docs/).
 
 ## Resources
 
@@ -86,43 +56,165 @@ We recommend using a Python virtual environment manager such as pipenv, conda or
 
 These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://docs.prefect.io/).
 
-<!--- ### Saving credentials to block
+### Usage
 
-Note, to use the `load` method on Blocks, you must already have a block document [saved through code](https://docs.prefect.io/concepts/blocks/#saving-blocks) or [saved through the UI](https://docs.prefect.io/ui/blocks/).
+Example adapted from [Planetary Computer - Scale with Dask](https://planetarycomputer.microsoft.com/docs/quickstarts/scale-with-dask/).
 
-Below is a walkthrough on saving block documents through code.
+Requires the following additional packages:
 
-1. Head over to <SERVICE_URL>.
-2. Login to your <SERVICE> account.
-3. Click "+ Create new secret key".
-4. Copy the generated API key.
-5. Create a short script, replacing the placeholders (or do so in the UI).
-
-```python
-from prefect_planetary_computer import Block
-Block(api_key="API_KEY_PLACEHOLDER").save("BLOCK_NAME_PLACEHOLDER")
+```
+pip install xarray zarr adlfs netcdf4 prefect_azure
 ```
 
-Congrats! You can now easily load the saved block, which holds your credentials:
+=== "Gateway client"
 
-```python
-from prefect_planetary_computer import Block
-Block.load("BLOCK_NAME_PLACEHOLDER")
-```
+    ```python
+    # Prefect tasks are executed using the default ConcurrentTaskRunner
+    # Dask Collections tasks are executed on a new temporary Dask cluster 
 
-!!! info "Registering blocks"
+    import xarray as xr
+    from distributed import get_client
+    
+    from prefect import flow, task, get_run_logger
+    from prefect_planetary_computer import PlanetaryComputerCredentials
+    
+    from prefect_azure import AzureBlobStorageCredentials
+    from prefect_azure.blob_storage import blob_storage_upload
 
-    Register blocks in this module to
-    [view and edit them](https://docs.prefect.io/ui/blocks/)
-    on Prefect Cloud:
+    pc_credentials = PlanetaryComputerCredentials.load("PC_BLOCK_NAME")
+    bs_credentials = AzureBlobStorageCredentials.load("BS_BLOCK_NAME")
+    
+    @task
+    def compute_mean(asset):
+        logger = get_run_logger()
 
-    ```bash
-    prefect block register -m prefect_planetary_computer
+        with get_client() as client:
+            ds = xr.open_zarr(
+                asset.href,
+                **asset.extra_fields["xarray:open_kwargs"],
+                storage_options=asset.extra_fields["xarray:storage_options"]
+            )
+            logger.info(f"Daymet dataset info\n: {ds}")
+        
+            timeseries = ds["tmin"].mean(dim=["x", "y"]).compute()
+            logger.info(f"Mean timeseries info\n: {timeseries}")
+
+        return timeseries
+    
+    @flow
+    def pc_dask_flow():
+    
+        # create and scale a temporary Dask cluster
+        cluster = pc_credentials.new_dask_gateway_cluster()
+        cluster.adapt(minimum=2, maximum=10)
+        client = cluster.get_client()
+    
+        # get a configured PySTAC client
+        catalog = pc_credentials.get_stac_catalog()
+    
+        # compute the minimum daily temperature averaged over all of Hawaii, 
+        # using the Daymet dataset
+        asset = catalog.get_collection("daymet-daily-hi").assets["zarr-abfs"]
+        prefect_future = compute_mean.submit(asset)
+        timeseries = prefect_future.result()
+
+        # close the cluster upon completion
+        cluster.close()
+
+        # save NetCDF timeseries file
+        timeseries.to_netcdf("timeseries.nc")
+    
+        # upload to 'my-container' blob storage container
+        with open("timeseries.nc", "rb") as f:
+            blob = blob_storage_upload(
+                data=f.read(),
+                container="my-container",
+                blob="timeseries.nc",
+                blob_storage_credentials=bs_credentials,
+                overwrite=False,
+            )
+    
+        # return the blob name of the uploaded timeseries object
+        return blob
+    
+    pc_dask_flow()
     ```
 
-A list of available blocks in `prefect-planetary-computer` and their setup instructions can be found [here](https://giorgiobasile.github.io/prefect-planetary-computer/blocks_catalog).
+=== "Task runner"
 
---->
+    ```python
+    # Both Prefect tasks and Dask Collections task are executed
+    # on a new temporary Dask cluster 
+    import xarray as xr
+    
+    from prefect import flow, task, get_run_logger
+    from prefect_planetary_computer import PlanetaryComputerCredentials
+    from prefect_planetary_computer.task_runners import PlanetaryComputerTaskRunner
+    
+    from prefect_azure import AzureBlobStorageCredentials
+    from prefect_azure.blob_storage import blob_storage_upload
+
+    from prefect_dask import get_dask_client 
+
+    pc_credentials = PlanetaryComputerCredentials.load("PC_BLOCK_NAME")
+    bs_credentials = AzureBlobStorageCredentials.load("BS_BLOCK_NAME")
+
+    pc_runner = PlanetaryComputerTaskRunner(
+        credentials=pc_credentials,
+        cluster_kwargs={
+            "image": "mcr.microsoft.com/planetary-computer/python:latest",
+        },
+        adapt_kwargs={'minimum': 1, 'maximum': 10, 'active': True}
+    )
+    
+    @task
+    def compute_mean(asset):
+        logger = get_run_logger()
+    
+        with get_dask_client() as client:
+            ds = xr.open_zarr(
+                asset.href,
+                **asset.extra_fields["xarray:open_kwargs"],
+                storage_options=asset.extra_fields["xarray:storage_options"]
+            )
+            logger.info(f"Daymet dataset info\n: {ds}")
+    
+            timeseries = ds["tmin"].mean(dim=["x", "y"]).compute()
+            logger.info(f"Mean timeseries info\n: {timeseries}")
+    
+        return timeseries
+    
+    @flow(task_runner=pc_runner)
+    def pc_dask_flow():
+        
+        # get a configured PySTAC client
+        catalog = pc_credentials.get_stac_catalog()
+    
+        # compute the minimum daily temperature averaged over all of Hawaii, 
+        # using the Daymet dataset
+        asset = catalog.get_collection("daymet-daily-hi").assets["zarr-abfs"]
+    
+        mean_task = compute_mean.submit(asset)
+        timeseries = mean_task.result()
+    
+        # save NetCDF timeseries file
+        timeseries.to_netcdf("timeseries.nc")
+    
+        # upload to 'my-container' blob storage container
+        with open("timeseries.nc", "rb") as f:
+            blob = blob_storage_upload(
+                data=f.read(),
+                container="my-container",
+                blob="timeseries.nc",
+                blob_storage_credentials=bs_credentials,
+                overwrite=False,
+            )
+    
+        # return the blob name of the uploaded timeseries object
+        return blob
+    
+    pc_dask_flow()
+    ```
 
 ### Feedback
 
