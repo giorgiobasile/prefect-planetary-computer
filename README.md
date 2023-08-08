@@ -20,22 +20,53 @@
 
 Visit the full docs [here](https://giorgiobasile.github.io/prefect-planetary-computer) to see additional examples and the API reference.
 
-Prefect integrations with Microsoft Planetary Computer.
+Prefect integrations with [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/).
 
 <a href="https://planetarycomputer.microsoft.com/"><img src="https://camo.githubusercontent.com/55810ac9ab5a7f4bb66d532d6c6afd26ef926a0c2436d506a91bb439a4983194/68747470733a2f2f6169346564617461736574737075626c69636173736574732e626c6f622e636f72652e77696e646f77732e6e65742f6173736574732f616f645f696d616765732f706c616e65746172795f636f6d70757465725f6865616465725f383030772e706e67" class="pc-banner" height=100/></a>
 
+## Getting started
 
-<!--- ### Add a real-world example of how to use this Collection here
+This collection provides:
 
-Offer some motivation on why this helps.
+- 🔑 A [credentials block](https://github.com/giorgiobasile/prefect-planetary-computer/) block to store and retrieve a subscription key and a Jupyter Hub token.
+- 🌍 A configured [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
+- 💻 A configured [Dask Gateway client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_gateway) to programmatically instantiate new Dask clusters and submit distributed computations.
+- 🚀 A [task runner](https://github.com/giorgiobasile/prefect-planetary-computer/task_runners/#prefect_planetary_computer.task_runners.PlanetaryComputerTaskRunner) to automatically instatiate temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
 
-After installing `prefect-planetary-computer` and [saving the credentials](#saving-credentials-to-block), you can easily use it within your flows to help you achieve the aforementioned benefits!
+For more information on using Azure services with Prefect and the Microsoft Planetary Computer, check out the [prefect-azure](https://github.com/PrefectHQ/prefect-azure/) collection.
+
+### Reading from the STAC API
+
+???+ note
+    Example adapted from [Planetary Computer - Reading Data from the STAC API](https://planetarycomputer.microsoft.com/docs/quickstarts/reading-stac/).
 
 ```python
-from prefect import flow, get_run_logger
+
+# TODO
+
 ```
 
---->
+### Scale with Dask
+
+???+ note
+    Example adapted from [Planetary Computer - Scale with Dask](https://planetarycomputer.microsoft.com/docs/quickstarts/scale-with-dask/).
+
+```python
+
+# TODO
+
+```
+
+### Writing outputs to Azure Blob Storage
+
+???+ note
+    Example adapted from [Planetary Computer - Writing outputs to Azure Blob Storage](https://planetarycomputer.microsoft.com/docs/quickstarts/storage/).
+
+```python
+
+# TODO
+
+```
 
 ## Resources
 
