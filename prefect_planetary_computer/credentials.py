@@ -1,6 +1,6 @@
 """Module handling Microsoft Planetary Computer credentials"""
 
-from typing import Optional
+from typing import Any, Optional
 
 import dask_gateway
 import planetary_computer
@@ -51,6 +51,18 @@ class PlanetaryComputerCredentials(Block):
         description="The JupyterHub API token to instantiate clusters through Dask Gateway.",  # noqa E501
         title="JupyterHub API Token",
     )
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        Equality comparison between two `PlanetaryComputerCredentials` instances.
+        """
+        if not isinstance(other, PlanetaryComputerCredentials):
+            return False
+        return (
+            self.subscription_key == other.subscription_key
+            and self.hub_api_token.get_secret_value()
+            == other.hub_api_token.get_secret_value()
+        )
 
     def get_stac_catalog(
         self, sign_inplace: bool = True, **pystac_kwargs

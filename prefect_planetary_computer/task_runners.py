@@ -99,6 +99,7 @@ class PlanetaryComputerTaskRunner(DaskTaskRunner):
         )
 
         super().__init__(
+            address=None,
             cluster_class="dask_gateway.GatewayCluster",
             cluster_kwargs=cluster_kwargs,
             adapt_kwargs=adapt_kwargs,
