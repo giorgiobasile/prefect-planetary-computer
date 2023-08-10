@@ -118,7 +118,7 @@ class PlanetaryComputerCredentials(Block):
             CATALOG_URL, modifier=modifier, **pystac_kwargs
         )
 
-    def get_dask_gateway(self, **gateway_kwargs: Dict) -> dask_gateway.Gateway:
+    def get_gateway(self, **gateway_kwargs: Dict) -> dask_gateway.Gateway:
         """
         Provides a client for the PC Dask Gateway Server,
         setting the proper addresses and Jupyter authentication.
@@ -139,18 +139,18 @@ class PlanetaryComputerCredentials(Block):
             from prefect_planetary_computer import PlanetaryComputerCredentials
 
             @flow
-            def example_get_dask_gateway_flow():
+            def example_get_gateway_flow():
                 pc_credentials_block = PlanetaryComputerCredentials(
                     subscription_key = "sub-key",
                     hub_api_token = "hub-token"
                 )
-                gateway = pc_credentials_block.get_dask_gateway()
+                gateway = pc_credentials_block.get_gateway()
 
                 # List available clusters
                 clusters = gateway.list_clusters()
                 return len(clusters)
 
-            example_get_dask_gateway_flow()
+            example_get_gateway_flow()
             ```
         """  # noqa E501
         if self.hub_api_token is None:
@@ -163,7 +163,7 @@ class PlanetaryComputerCredentials(Block):
             **gateway_kwargs,
         )
 
-    def new_dask_gateway_cluster(
+    def new_gateway_cluster(
         self,
         worker_cores: Optional[float] = None,
         worker_memory: Optional[float] = None,
@@ -203,12 +203,12 @@ class PlanetaryComputerCredentials(Block):
             from prefect_planetary_computer import PlanetaryComputerCredentials
 
             @flow
-            def example_new_dask_gateway_cluster_flow():
+            def example_new_cluster_flow():
                 pc_credentials_block = PlanetaryComputerCredentials.load("BLOCK_NAME")
 
                 # Create a Dask Gateway cluster with default configuration
                 # it will be automatically used for any subsequent dask compute
-                cluster = pc_credentials_block.new_dask_gateway_cluster()
+                cluster = pc_credentials_block.new_cluster()
 
                 # Scale the cluster to at most 10 workers
                 cluster.adapt(minimum=2, maximum=10)
@@ -219,20 +219,19 @@ class PlanetaryComputerCredentials(Block):
 
                 return result
 
-            example_new_dask_gateway_cluster_flow()
+            example_new_cluster_flow()
             ```
         """  # noqa E501
 
-        if worker_cores is not None:
-            gateway_cluster_kwargs["worker_cores"] = worker_cores
-        if worker_memory is not None:
-            gateway_cluster_kwargs["worker_memory"] = worker_memory
-        if image is not None:
-            gateway_cluster_kwargs["image"] = image
-        if gpu is not None:
-            gateway_cluster_kwargs["gpu"] = gpu
-        if environment is not None:
-            gateway_cluster_kwargs["environment"] = environment
+        gateway_cluster_kwargs.update(
+            self._get_cluster_options_dict(
+                worker_cores=worker_cores,
+                worker_memory=worker_memory,
+                image=image,
+                gpu=gpu,
+                environment=environment,
+            )
+        )
 
         return dask_gateway.GatewayCluster(
             address=GATEWAY_ADDRESS,
@@ -243,17 +242,32 @@ class PlanetaryComputerCredentials(Block):
 
     def get_dask_task_runner(
         self,
+        worker_cores: Optional[float] = None,
+        worker_memory: Optional[float] = None,
+        image: Optional[str] = None,
+        gpu: Optional[bool] = False,
+        environment: Optional[dict] = None,
         cluster_kwargs: Dict = None,
         adapt_kwargs: Dict = None,
         client_kwargs: Dict = None,
     ) -> DaskTaskRunner:
 
         """
-        Provides a [`prefect_dask.DaskTaskRunner`]
-        (https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner),
-        with PC-specific configuration.
+        Provides a [`prefect_dask.DaskTaskRunner`](https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner)
+        with PC-specific configurations.
+
+        This will use the PC Dask Gateway Server to create a new cluster the same way as
+        [`PlanetaryComputerCredentials.new_gateway_cluster`](#new_gateway_cluster) does,
+        but it will automatically happen at flow submission time.
 
         Args:
+            worker_cores: Number of cores per worker, in the 0.1-8 range. Defaults to 1.
+            worker_memory: Amount of memory per worker (in GiB) in the 1-64 range. Defaults to 8.
+            image: The Docker image to be used for the workers.
+                Defaults to [`pangeo/pangeo-notebook:latest`](https://hub.docker.com/layers/pangeo/pangeo-notebook/latest/images/sha256-94e97e24adf14e72c01f18c782b8c4e0efb1e05950a5f2d2e86e67adcbf547f8)
+                To use the PC official images, refer to the [`planetary-computer-containers`](https://github.com/Microsoft/planetary-computer-containers) repo.
+            gpu: Whether to use GPU workers. Defaults to False.
+            environment: Environment variables to set on the workers. Defaults to the GDAL and PYGEOS-related variables set in the PC Hub.
             cluster_kwargs: Additional kwargs to pass to
                 [`dask_gateway.GatewayCluster`](https://gateway.dask.org/api-client.html#gatewaycluster)
                 when creating a temporary dask cluster.
@@ -261,7 +275,7 @@ class PlanetaryComputerCredentials(Block):
                 [`dask_gateway.Gateway,adapt_cluster`](https://gateway.dask.org/api-client.html#dask_gateway.Gateway.adapt_cluster)
                 when creating a temporary cluster.
                 Note that adaptive scaling is only enabled if `adapt_kwargs` are provided.
-            client_kwargs (dict, optional): Additional kwargs to use when creating a
+            client_kwargs: Additional kwargs to use when creating a
                 [`dask.distributed.Client`](https://distributed.dask.org/en/latest/api.html#client).
 
         Examples:
@@ -309,9 +323,47 @@ class PlanetaryComputerCredentials(Block):
             )
         )
 
+        cluster_kwargs.update(
+            self._get_cluster_options_dict(
+                worker_cores=worker_cores,
+                worker_memory=worker_memory,
+                image=image,
+                gpu=gpu,
+                environment=environment,
+            )
+        )
+
         return DaskTaskRunner(
             cluster_class="dask_gateway.GatewayCluster",
             cluster_kwargs=cluster_kwargs,
             adapt_kwargs=adapt_kwargs,
             client_kwargs=client_kwargs,
         )
+
+    def _get_cluster_options_dict(
+        self,
+        worker_cores: Optional[float] = None,
+        worker_memory: Optional[float] = None,
+        image: Optional[str] = None,
+        gpu: Optional[bool] = False,
+        environment: Optional[dict] = None,
+    ) -> Dict[str, Any]:
+        """
+        Return a dictionary of cluster options accepted by
+        the PC `dask_gateway.GatewayCluster` constructor.
+        """
+
+        cluster_options = {}
+
+        if worker_cores is not None:
+            cluster_options["worker_cores"] = worker_cores
+        if worker_memory is not None:
+            cluster_options["worker_memory"] = worker_memory
+        if image is not None:
+            cluster_options["image"] = image
+        if gpu is not None:
+            cluster_options["gpu"] = gpu
+        if environment is not None:
+            cluster_options["environment"] = environment
+
+        return cluster_options

@@ -29,7 +29,7 @@ Prefect integrations with the [Microsoft Planetary Computer](https://planetaryco
 This collection includes a [Credentials Block 🔑](https://github.com/giorgiobasile/prefect-planetary-computer/) to store and retrieve a subscription key and a Jupyter Hub token, providing convenience methods to instantiate PC-configured objects like:
 
 - 🌍 [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
-- 💻 Dask Gateway [Client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_gateway) and [Cluster](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.new_dask_gateway_cluster) to programmatically instantiate and manage Dask clusters, and submit distributed computations.
+- 💻 Dask Gateway [Client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_gateway) and [Cluster](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.new_gateway_cluster) to programmatically instantiate and manage Dask clusters, and submit distributed computations.
 - 🚀 [Dask Task Runner](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_task_runner) to automatically instatiate and temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
 
 For more information about:
@@ -105,7 +105,7 @@ pip install xarray zarr adlfs netcdf4 prefect_azure
     def pc_dask_flow():
     
         # create and scale a temporary Dask cluster
-        cluster = pc_credentials.new_dask_gateway_cluster()
+        cluster = pc_credentials.new_gateway_cluster()
         cluster.adapt(minimum=2, maximum=10)
         client = cluster.get_client()
     
