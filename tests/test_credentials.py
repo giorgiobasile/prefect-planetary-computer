@@ -22,19 +22,19 @@ def test_get_stac_catalog(mock_pc_credentials_block):
     assert stac_catalog.id == "microsoft-pc"
 
 
-def test_get_dask_gateway_fail():
+def test_get_gateway_fail():
     with pytest.raises(ValueError):
-        PlanetaryComputerCredentials().get_dask_gateway()
+        PlanetaryComputerCredentials().get_gateway()
 
 
-def test_get_dask_gateway(mock_pc_credentials_block):
-    gateway_client = mock_pc_credentials_block.get_dask_gateway()
+def test_get_gateway(mock_pc_credentials_block):
+    gateway_client = mock_pc_credentials_block.get_gateway()
     assert isinstance(gateway_client, Gateway)
     assert gateway_client.address == GATEWAY_ADDRESS
 
 
-def test_new_dask_gateway_cluster(mock_pc_credentials_block):
-    gateway_cluster = mock_pc_credentials_block.new_dask_gateway_cluster(
+def test_new_gateway_cluster(mock_pc_credentials_block):
+    gateway_cluster = mock_pc_credentials_block.new_gateway_cluster(
         worker_cores=1.0,
         worker_memory=8.0,
         image="pangeo/pangeo-notebook:latest",
