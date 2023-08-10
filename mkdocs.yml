@@ -79,6 +79,4 @@ nav:
     - Examples Catalog: examples_catalog.md
     - API Reference:
         - Credentials: credentials.md
-        - Task runners: task_runners.md
-
 

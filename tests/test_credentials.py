@@ -1,5 +1,6 @@
 import pytest
 from dask_gateway import Gateway
+from prefect_dask import DaskTaskRunner
 from pystac_client import Client
 
 from prefect_planetary_computer.credentials import (
@@ -13,6 +14,12 @@ def test_eq(mock_pc_credentials_block):
     other_cr = PlanetaryComputerCredentials()
     assert mock_pc_credentials_block != other_str
     assert mock_pc_credentials_block != other_cr
+
+
+def test_get_stac_catalog(mock_pc_credentials_block):
+    stac_catalog = mock_pc_credentials_block.get_stac_catalog(sign_inplace=True)
+    assert isinstance(stac_catalog, Client)
+    assert stac_catalog.id == "microsoft-pc"
 
 
 def test_get_dask_gateway_fail():
@@ -37,7 +44,7 @@ def test_new_dask_gateway_cluster(mock_pc_credentials_block):
     assert gateway_cluster.name == "test-cluster"
 
 
-def test_get_stac_catalog(mock_pc_credentials_block):
-    stac_catalog = mock_pc_credentials_block.get_stac_catalog(sign_inplace=True)
-    assert isinstance(stac_catalog, Client)
-    assert stac_catalog.id == "microsoft-pc"
+def test_get_dask_task_runner(mock_pc_credentials_block):
+    task_runner = mock_pc_credentials_block.get_dask_task_runner()
+    assert isinstance(task_runner, DaskTaskRunner)
+    assert task_runner.cluster_kwargs["address"] == GATEWAY_ADDRESS

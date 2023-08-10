@@ -1,12 +1,13 @@
 """Module handling Microsoft Planetary Computer credentials"""
 
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import dask_gateway
 import planetary_computer
 import pystac_client
 from dask_gateway.auth import JupyterHubAuth
 from prefect.blocks.core import Block
+from prefect_dask import DaskTaskRunner
 from pydantic import Field, SecretStr
 
 from prefect_planetary_computer.constants import (
@@ -65,7 +66,7 @@ class PlanetaryComputerCredentials(Block):
         )
 
     def get_stac_catalog(
-        self, sign_inplace: bool = True, **pystac_kwargs
+        self, sign_inplace: bool = True, **pystac_kwargs: Dict
     ) -> pystac_client.Client:
         """
         Provides a [PySTAC client](https://pystac-client.readthedocs.io/en/stable/api.html#client) for the PC data catalog,
@@ -117,7 +118,7 @@ class PlanetaryComputerCredentials(Block):
             CATALOG_URL, modifier=modifier, **pystac_kwargs
         )
 
-    def get_dask_gateway(self, **gateway_kwargs) -> dask_gateway.Gateway:
+    def get_dask_gateway(self, **gateway_kwargs: Dict) -> dask_gateway.Gateway:
         """
         Provides a client for the PC Dask Gateway Server,
         setting the proper addresses and Jupyter authentication.
@@ -169,7 +170,7 @@ class PlanetaryComputerCredentials(Block):
         image: Optional[str] = None,
         gpu: Optional[bool] = False,
         environment: Optional[dict] = None,
-        **gateway_cluster_kwargs,
+        **gateway_cluster_kwargs: Dict,
     ) -> dask_gateway.GatewayCluster:
         """
         Instantiate a new cluster from the PC Dask Gateway Server.
@@ -222,8 +223,6 @@ class PlanetaryComputerCredentials(Block):
             ```
         """  # noqa E501
 
-        gateway = self.get_dask_gateway(**gateway_cluster_kwargs)
-
         if worker_cores is not None:
             gateway_cluster_kwargs["worker_cores"] = worker_cores
         if worker_memory is not None:
@@ -235,4 +234,84 @@ class PlanetaryComputerCredentials(Block):
         if environment is not None:
             gateway_cluster_kwargs["environment"] = environment
 
-        return gateway.new_cluster(**gateway_cluster_kwargs)
+        return dask_gateway.GatewayCluster(
+            address=GATEWAY_ADDRESS,
+            proxy_address=GATEWAY_PROXY_ADDRESS,
+            auth=JupyterHubAuth(api_token=self.hub_api_token.get_secret_value()),
+            **gateway_cluster_kwargs,
+        )
+
+    def get_dask_task_runner(
+        self,
+        cluster_kwargs: Dict = None,
+        adapt_kwargs: Dict = None,
+        client_kwargs: Dict = None,
+    ) -> DaskTaskRunner:
+
+        """
+        Provides a [`prefect_dask.DaskTaskRunner`]
+        (https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner),
+        with PC-specific configuration.
+
+        Args:
+            cluster_kwargs: Additional kwargs to pass to
+                [`dask_gateway.GatewayCluster`](https://gateway.dask.org/api-client.html#gatewaycluster)
+                when creating a temporary dask cluster.
+            adapt_kwargs: Additional kwargs to pass to
+                [`dask_gateway.Gateway,adapt_cluster`](https://gateway.dask.org/api-client.html#dask_gateway.Gateway.adapt_cluster)
+                when creating a temporary cluster.
+                Note that adaptive scaling is only enabled if `adapt_kwargs` are provided.
+            client_kwargs (dict, optional): Additional kwargs to use when creating a
+                [`dask.distributed.Client`](https://distributed.dask.org/en/latest/api.html#client).
+
+        Examples:
+            Using a temporary PC Dask Gateway cluster:
+            ```python
+            from prefect import flow
+
+            pc_credentials = PlanetaryComputerCredentials.load("BLOCK_NAME")
+
+            pc_runner = pc_credentials.get_dask_task_runner()
+
+            @flow(task_runner=pc_runner)
+            def my_flow():
+                ...
+            ```
+
+            Providing additional kwargs to the PC Dask Gateway cluster:
+            ```python
+            pc_runner = pc_credentials.get_dask_task_runner(
+                cluster_kwargs={
+                    "image": "mcr.microsoft.com/planetary-computer/python:latest",
+                },
+                adapt_kwargs={'minimum': 1, 'maximum': 10, 'active': True}
+            )
+            ```
+
+            Connecting to an existing PC `GatewayCluster` (use `DaskTaskRunner` directly for this):
+            ```python
+            DaskTaskRunner(
+                address=cluster.address,
+                client_kwargs={'security': cluster.security}
+            )
+            ```
+
+        """  # noqa: E501
+
+        if cluster_kwargs is None:
+            cluster_kwargs = {}
+
+        cluster_kwargs.update(
+            dict(
+                address=GATEWAY_ADDRESS,
+                proxy_address=GATEWAY_PROXY_ADDRESS,
+                auth=JupyterHubAuth(api_token=self.hub_api_token.get_secret_value()),
+            )
+        )
+
+        return DaskTaskRunner(
+            cluster_class="dask_gateway.GatewayCluster",
+            cluster_kwargs=cluster_kwargs,
+            adapt_kwargs=adapt_kwargs,
+            client_kwargs=client_kwargs,
+        )
