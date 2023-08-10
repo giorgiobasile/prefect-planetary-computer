@@ -28,10 +28,9 @@ Prefect integrations with the [Microsoft Planetary Computer](https://planetaryco
 
 This collection provides:
 
-- 🔑 A [credentials block](https://github.com/giorgiobasile/prefect-planetary-computer/) block to store and retrieve a subscription key and a Jupyter Hub token.
-- 🌍 A configured [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
-- 💻 A configured [Dask Gateway client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_gateway) to programmatically instantiate new Dask clusters and submit distributed computations.
-- 🚀 A [task runner](https://github.com/giorgiobasile/prefect-planetary-computer/task_runners/#prefect_planetary_computer.task_runners.PlanetaryComputerTaskRunner) based on [`prefect_dask.DaskTaskRunner`](https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner) to automatically instatiate temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
+- 🔑 [Credentials block](https://github.com/giorgiobasile/prefect-planetary-computer/) to store and retrieve a subscription key and a Jupyter Hub token.
+- 🌍 [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
+- 🚀 Specific [Gateway](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.gateway.PlanetaryComputerGateway) and [Cluster](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.gateway.PlanetaryComputerGateway), optionally integrating with [`prefect_dask.DaskTaskRunner`](https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner) to automatically instatiate temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
 
 For more information on:
 
@@ -66,7 +65,7 @@ Requires the following additional packages:
 pip install xarray zarr adlfs netcdf4 prefect_azure
 ```
 
-=== "Gateway client"
+=== "Gateway only"
 
     ```python
     # Prefect tasks are executed using the default ConcurrentTaskRunner
@@ -105,7 +104,7 @@ pip install xarray zarr adlfs netcdf4 prefect_azure
     def pc_dask_flow():
     
         # create and scale a temporary Dask cluster
-        cluster = pc_credentials.new_dask_gateway_cluster()
+        cluster = pc_credentials.new_cluster()
         cluster.adapt(minimum=2, maximum=10)
         client = cluster.get_client()
     
@@ -140,7 +139,7 @@ pip install xarray zarr adlfs netcdf4 prefect_azure
     pc_dask_flow()
     ```
 
-=== "Task runner"
+=== "With DaskTaskRunner"
 
     ```python
     # Both Prefect tasks and Dask Collections task are executed
@@ -149,20 +148,19 @@ pip install xarray zarr adlfs netcdf4 prefect_azure
     
     from prefect import flow, task, get_run_logger
     from prefect_planetary_computer import PlanetaryComputerCredentials
-    from prefect_planetary_computer.task_runners import PlanetaryComputerTaskRunner
     
     from prefect_azure import AzureBlobStorageCredentials
     from prefect_azure.blob_storage import blob_storage_upload
 
-    from prefect_dask import get_dask_client 
+    from prefect_dask import DaskTaskRunner, get_dask_client 
 
     pc_credentials = PlanetaryComputerCredentials.load("PC_BLOCK_NAME")
     bs_credentials = AzureBlobStorageCredentials.load("BS_BLOCK_NAME")
 
-    pc_runner = PlanetaryComputerTaskRunner(
-        credentials=pc_credentials,
+    pc_runner = DaskTaskRunner(
+        cluster_class=pc_credentials.new_cluster() # provides a PlanetaryComputerCluster
         cluster_kwargs={
-            "image": "mcr.microsoft.com/planetary-computer/python:latest",
+            "image": "pangeo/pangeo-notebook:latest",
         },
         adapt_kwargs={'minimum': 1, 'maximum': 10, 'active': True}
     )
