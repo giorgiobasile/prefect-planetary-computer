@@ -3,16 +3,13 @@ import json
 import pytest
 import requests_mock
 from dask.distributed import LocalCluster
-from dask_gateway import Gateway
 from importlib_resources import files
 from prefect.testing.utilities import prefect_test_harness
-from prefect.utilities.importtools import from_qualified_name
 
 from prefect_planetary_computer.credentials import (
     CATALOG_URL,
     PlanetaryComputerCredentials,
 )
-from prefect_planetary_computer.task_runners import PlanetaryComputerTaskRunner
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -53,32 +50,16 @@ def mock_pc_stac_responses():
 
 
 @pytest.fixture
-def mock_gateway_new_cluster(monkeypatch):
-    def mock_new_cluster(*args, **kwargs):  # noqa
+def mock_gateway_cluster(monkeypatch):
+    def mock_cluster(*args, **kwargs):  # noqa
         cluster = LocalCluster(name="test-cluster")
         return cluster
 
-    monkeypatch.setattr(Gateway, "new_cluster", mock_new_cluster)
+    monkeypatch.setattr("dask_gateway.GatewayCluster", mock_cluster)
 
 
 @pytest.fixture
-def mock_pc_credentials_block(mock_pc_stac_responses, mock_gateway_new_cluster):  # noqa
+def mock_pc_credentials_block(mock_pc_stac_responses, mock_gateway_cluster):  # noqa
     return PlanetaryComputerCredentials(
         hub_api_token="fake-token", subscription_key="fake-key"
     )
-
-
-@pytest.fixture
-def mock_pc_task_runner(mock_pc_credentials_block):
-    def new_basic_mock_pc_runner():
-        basic_pc_runner = PlanetaryComputerTaskRunner(mock_pc_credentials_block)
-        basic_pc_runner.cluster_class = from_qualified_name(
-            "dask.distributed.LocalCluster"
-        )
-        basic_pc_runner.cluster_kwargs = {"name": "test-cluster"}
-        return basic_pc_runner
-
-    pc_runner = new_basic_mock_pc_runner()
-    pc_runner.duplicate = new_basic_mock_pc_runner
-
-    return pc_runner

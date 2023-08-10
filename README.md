@@ -26,17 +26,17 @@ Prefect integrations with the [Microsoft Planetary Computer](https://planetaryco
 
 ## Overview
 
-This collection provides:
+This collection includes a [Credentials Block 🔑](https://github.com/giorgiobasile/prefect-planetary-computer/) to store and retrieve a subscription key and a Jupyter Hub token, providing convenience methods to instantiate PC-configured objects like:
 
-- 🔑 A [credentials block](https://github.com/giorgiobasile/prefect-planetary-computer/) block to store and retrieve a subscription key and a Jupyter Hub token.
-- 🌍 A configured [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
-- 💻 A configured [Dask Gateway client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_gateway) to programmatically instantiate new Dask clusters and submit distributed computations.
-- 🚀 A [task runner](https://github.com/giorgiobasile/prefect-planetary-computer/task_runners/#prefect_planetary_computer.task_runners.PlanetaryComputerTaskRunner) based on [`prefect_dask.DaskTaskRunner`](https://prefecthq.github.io/prefect-dask/task_runners/#prefect_dask.task_runners.DaskTaskRunner) to automatically instatiate temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
+- 🌍 [PySTAC client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_stac_catalog) to interact with the Planetary Computer data catalog.
+- 💻 Dask Gateway [Client](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_gateway) and [Cluster](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.new_dask_gateway_cluster) to programmatically instantiate and manage Dask clusters, and submit distributed computations.
+- 🚀 [Dask Task Runner](https://github.com/giorgiobasile/prefect-planetary-computer/credentials/#prefect_planetary_computer.credentials.PlanetaryComputerCredentials.get_dask_task_runner) to automatically instatiate and temporary Dask clusters at flow execution time, enabling submission of both Prefect and Dask Collections tasks.
 
-For more information on:
+For more information about:
 
 - using Azure services with Prefect and the Planetary Computer, check out the [`prefect-azure`](https://github.com/PrefectHQ/prefect-azure/) collection.
-- how to take advantage of the Planetary Computer data catalog and compute resources, check out the [Planetary Computer documentation](https://planetarycomputer.microsoft.com/docs/).
+- the integration between Prefect and Dask, check out the [`prefect-dask`](https://github.com/PrefectHQ/prefect-dask/) collection.
+- taking advantage of the Planetary Computer data catalog and compute resources, check out the [Planetary Computer documentation](https://planetarycomputer.microsoft.com/docs/).
 
 ## Resources
 
@@ -66,7 +66,7 @@ Requires the following additional packages:
 pip install xarray zarr adlfs netcdf4 prefect_azure
 ```
 
-=== "Gateway client"
+=== "Gateway Client"
 
     ```python
     # Prefect tasks are executed using the default ConcurrentTaskRunner
@@ -149,7 +149,6 @@ pip install xarray zarr adlfs netcdf4 prefect_azure
     
     from prefect import flow, task, get_run_logger
     from prefect_planetary_computer import PlanetaryComputerCredentials
-    from prefect_planetary_computer.task_runners import PlanetaryComputerTaskRunner
     
     from prefect_azure import AzureBlobStorageCredentials
     from prefect_azure.blob_storage import blob_storage_upload
@@ -159,8 +158,7 @@ pip install xarray zarr adlfs netcdf4 prefect_azure
     pc_credentials = PlanetaryComputerCredentials.load("PC_BLOCK_NAME")
     bs_credentials = AzureBlobStorageCredentials.load("BS_BLOCK_NAME")
 
-    pc_runner = PlanetaryComputerTaskRunner(
-        credentials=pc_credentials,
+    pc_runner = pc_credentials.get_dask_task_runner(
         cluster_kwargs={
             "image": "mcr.microsoft.com/planetary-computer/python:latest",
         },
