@@ -65,8 +65,7 @@ These tasks are designed to work with Prefect 2.0. For more information about ho
 
 #### Computing Dask Collections
 
-Support Dask collection computations(e.g. Dask DataFrame) from within a Prefect task.
-This is achieved by using the credentials block to create a Dask Gateway cluster from within a Prefect task.
+Dask collection computations, such as Dask DataFrames, can be supported from within a Prefect task by creating a Dask Gateway cluster using the credentials block within the main flow or task itself.
 
 
 ```python
