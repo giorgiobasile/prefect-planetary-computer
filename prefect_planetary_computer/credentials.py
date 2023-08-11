@@ -257,6 +257,10 @@ class PlanetaryComputerCredentials(Block):
         [`PlanetaryComputerCredentials.new_gateway_cluster`](#new_gateway_cluster) does,
         but it will automatically happen at flow submission time.
 
+        Each argument corresponds to one of the available PC Dask Gateway cluster option.
+        PC sets some defaults, but they can be overridden by passing the corresponding argument to this function -
+        [see Helm chart](https://github.com/microsoft/planetary-computer-hub/blob/main/helm/chart/config.yaml).
+
         Args:
             worker_cores: Number of cores per worker, in the 0.1-8 range. Defaults to 1.
             worker_memory: Amount of memory per worker (in GiB) in the 1-64 range. Defaults to 8.
