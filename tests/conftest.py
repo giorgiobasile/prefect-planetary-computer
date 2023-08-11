@@ -36,7 +36,7 @@ def reset_object_registry():
 def mock_pc_stac_responses():
     with requests_mock.Mocker() as m:
         with files("data").joinpath("stac-catalog-response.json").open(
-            "r"
+            "r", encoding="utf-8"
         ) as stac_catalog_response_file:
             stac_catalog_response = json.load(stac_catalog_response_file)
 
