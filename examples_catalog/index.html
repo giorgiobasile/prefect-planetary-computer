@@ -434,52 +434,7 @@
 <h1 id="examples-catalog">Examples Catalog</h1>
 <p>Below is a list of examples for <code>prefect-planetary-computer</code>.</p>
 <h2 id="credentials-module"><a class="autorefs autorefs-internal" href="../credentials/#prefect_planetary_computer.credentials">Credentials Module</a></h2>
-<p>Get a configured PySTAC client with automatic asset signing:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_get_stac_catalog_flow</span><span class="p">():</span>
-    <span class="n">pc_credentials_block</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME&quot;</span><span class="p">)</span>
-
-    <span class="n">catalog</span> <span class="o">=</span> <span class="n">pc_credentials_block</span><span class="o">.</span><span class="n">get_stac_catalog</span><span class="p">()</span>
-
-    <span class="c1"># Search STAC catalog for Landsat Collection 2 Level 2 items</span>
-    <span class="n">time_range</span> <span class="o">=</span> <span class="s2">&quot;2020-12-01/2020-12-31&quot;</span>
-    <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">122.2751</span><span class="p">,</span> <span class="mf">47.5469</span><span class="p">,</span> <span class="o">-</span><span class="mf">121.9613</span><span class="p">,</span> <span class="mf">47.7458</span><span class="p">]</span>
-
-    <span class="n">search</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">collections</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;landsat-c2-l2&quot;</span><span class="p">],</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">datetime</span><span class="o">=</span><span class="n">time_range</span><span class="p">)</span>
-    <span class="n">items</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
-
-<span class="n">example_get_stac_catalog_flow</span><span class="p">()</span>
-</code></pre></div>
-Using a temporary PC Dask Gateway cluster:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-
-<span class="n">pc_credentials</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME&quot;</span><span class="p">)</span>
-
-<span class="n">pc_runner</span> <span class="o">=</span> <span class="n">pc_credentials</span><span class="o">.</span><span class="n">get_dask_task_runner</span><span class="p">()</span>
-
-<span class="nd">@flow</span><span class="p">(</span><span class="n">task_runner</span><span class="o">=</span><span class="n">pc_runner</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
-    <span class="o">...</span>
-</code></pre></div></p>
-<p>Providing additional kwargs to the PC Dask Gateway cluster:
-<div class="highlight"><pre><span></span><code><span class="n">pc_runner</span> <span class="o">=</span> <span class="n">pc_credentials</span><span class="o">.</span><span class="n">get_dask_task_runner</span><span class="p">(</span>
-    <span class="n">cluster_kwargs</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="s2">&quot;pangeo/pangeo-notebook:latest&quot;</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="n">adapt_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;minimum&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;maximum&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
-<span class="p">)</span>
-</code></pre></div></p>
-<p>Connecting to an existing PC <code>GatewayCluster</code> (use <code>DaskTaskRunner</code> directly for this):
-<div class="highlight"><pre><span></span><code><span class="n">DaskTaskRunner</span><span class="p">(</span>
-    <span class="n">address</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
-    <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;security&#39;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">security</span><span class="p">}</span>
-<span class="p">)</span>
-</code></pre></div>
-Instantiate a new cluster using PC Dask Gateway Server:
+<p>Instantiate a new cluster using PC Dask Gateway Server:
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dask.array</span> <span class="k">as</span> <span class="nn">da</span>
 <span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
 <span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
@@ -520,6 +475,51 @@ Get a configured Dask Gateway client:
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span>
 
 <span class="n">example_get_gateway_flow</span><span class="p">()</span>
+</code></pre></div>
+Using a temporary PC Dask Gateway cluster:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+
+<span class="n">pc_credentials</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME&quot;</span><span class="p">)</span>
+
+<span class="n">pc_runner</span> <span class="o">=</span> <span class="n">pc_credentials</span><span class="o">.</span><span class="n">get_dask_task_runner</span><span class="p">()</span>
+
+<span class="nd">@flow</span><span class="p">(</span><span class="n">task_runner</span><span class="o">=</span><span class="n">pc_runner</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="o">...</span>
+</code></pre></div></p>
+<p>Providing additional kwargs to the PC Dask Gateway cluster:
+<div class="highlight"><pre><span></span><code><span class="n">pc_runner</span> <span class="o">=</span> <span class="n">pc_credentials</span><span class="o">.</span><span class="n">get_dask_task_runner</span><span class="p">(</span>
+    <span class="n">cluster_kwargs</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="s2">&quot;pangeo/pangeo-notebook:latest&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">adapt_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;minimum&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;maximum&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div></p>
+<p>Connecting to an existing PC <code>GatewayCluster</code> (use <code>DaskTaskRunner</code> directly for this):
+<div class="highlight"><pre><span></span><code><span class="n">DaskTaskRunner</span><span class="p">(</span>
+    <span class="n">address</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+    <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;security&#39;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">security</span><span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+Get a configured PySTAC client with automatic asset signing:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">example_get_stac_catalog_flow</span><span class="p">():</span>
+    <span class="n">pc_credentials_block</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME&quot;</span><span class="p">)</span>
+
+    <span class="n">catalog</span> <span class="o">=</span> <span class="n">pc_credentials_block</span><span class="o">.</span><span class="n">get_stac_catalog</span><span class="p">()</span>
+
+    <span class="c1"># Search STAC catalog for Landsat Collection 2 Level 2 items</span>
+    <span class="n">time_range</span> <span class="o">=</span> <span class="s2">&quot;2020-12-01/2020-12-31&quot;</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">122.2751</span><span class="p">,</span> <span class="mf">47.5469</span><span class="p">,</span> <span class="o">-</span><span class="mf">121.9613</span><span class="p">,</span> <span class="mf">47.7458</span><span class="p">]</span>
+
+    <span class="n">search</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">collections</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;landsat-c2-l2&quot;</span><span class="p">],</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">datetime</span><span class="o">=</span><span class="n">time_range</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+
+<span class="n">example_get_stac_catalog_flow</span><span class="p">()</span>
 </code></pre></div></p>
 
 
