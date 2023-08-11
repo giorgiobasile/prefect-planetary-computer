@@ -27,4 +27,4 @@ Released on ????? ?th, 20??.
 
 - Added Planetary Computer credentials block and Dask Gateway client - [#7](https://github.com/giorgiobasile/prefect-planetary-computer/pull/7)
 - Added method to programmatically instatiate new Dask clusters - [#8](https://github.com/giorgiobasile/prefect-planetary-computer/pull/8)
-- Added specialised task runner based on `prefect_dask.DaskTaskRunner` - [#11](https://github.com/giorgiobasile/prefect-planetary-computer/issues/11)
+- Added method to return a configured `prefect_dask.DaskTaskRunner` task runner - [#17](https://github.com/giorgiobasile/prefect-planetary-computer/issues/17)
