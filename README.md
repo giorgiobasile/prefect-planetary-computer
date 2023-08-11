@@ -26,7 +26,7 @@ Prefect integrations with the Microsoft [Planetary Computer](https://planetaryco
 
 ## Overview
 
-This collection includes a [Credentials Block 🔑](https://github.com/giorgiobasile/prefect-planetary-computer/) to store and retrieve PC a subscription key and a Jupyter Hub token, with convenience methods that allow your flows and tasks to easily interact with the Planetary Computer [Data Catalog 🌍](https://planetarycomputer.microsoft.com/catalog) and [Dask Gateway 🚀](https://planetarycomputer.microsoft.com/docs/quickstarts/scale-with-dask/) server.
+This collection includes a [Credentials Block 🔑](https://github.com/giorgiobasile/prefect-planetary-computer/) to store and retrieve a PC subscription key and Jupyter Hub token, with convenience methods to easily interact with the PC [Data Catalog 🌍](https://planetarycomputer.microsoft.com/catalog) and [Dask Gateway 🚀](https://planetarycomputer.microsoft.com/docs/quickstarts/scale-with-dask/) server.
 
 For more information about:
 
