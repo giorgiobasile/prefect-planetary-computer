@@ -175,9 +175,6 @@ class PlanetaryComputerCredentials(Block):
         """
         Instantiate a new cluster from the PC Dask Gateway Server.
 
-        Please make sure to **share the same python dependencies** as the Docker image used for the Dask workers,
-        [as explained in the Dask docs](https://docs.dask.org/en/stable/deployment-considerations.html#consistent-software-environments).
-
         Each argument corresponds to one of the available PC Dask Gateway cluster option.
         PC sets some defaults, but they can be overridden by passing the corresponding argument to this function -
         [see Helm chart](https://github.com/microsoft/planetary-computer-hub/blob/main/helm/chart/config.yaml).
