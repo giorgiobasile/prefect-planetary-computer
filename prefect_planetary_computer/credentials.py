@@ -176,7 +176,7 @@ class PlanetaryComputerCredentials(Block):
         Instantiate a new cluster from the PC Dask Gateway Server.
 
         Please make sure to **share the same python dependencies** as the Docker image used for the Dask workers,
-        [as explained in the Dask docs](https://docs.dask.org/en/stable/how-to/manage-environments.html#manage-environments).
+        [as explained in the Dask docs](https://docs.dask.org/en/stable/deployment-considerations.html#consistent-software-environments).
 
         Each argument corresponds to one of the available PC Dask Gateway cluster option.
         PC sets some defaults, but they can be overridden by passing the corresponding argument to this function -
@@ -296,7 +296,7 @@ class PlanetaryComputerCredentials(Block):
             ```python
             pc_runner = pc_credentials.get_dask_task_runner(
                 cluster_kwargs={
-                    "image": "mcr.microsoft.com/planetary-computer/python:latest",
+                    "image": "pangeo/pangeo-notebook:latest",
                 },
                 adapt_kwargs={'minimum': 1, 'maximum': 10, 'active': True}
             )
