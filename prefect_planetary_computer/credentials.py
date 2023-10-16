@@ -8,13 +8,18 @@ import pystac_client
 from dask_gateway.auth import JupyterHubAuth
 from prefect.blocks.core import Block
 from prefect_dask import DaskTaskRunner
-from pydantic import Field, SecretStr
+from pydantic import VERSION as PYDANTIC_VERSION
 
 from prefect_planetary_computer.constants import (
     CATALOG_URL,
     GATEWAY_ADDRESS,
     GATEWAY_PROXY_ADDRESS,
 )
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field, SecretStr
+else:
+    from pydantic import Field, SecretStr
 
 
 class PlanetaryComputerCredentials(Block):
@@ -27,8 +32,8 @@ class PlanetaryComputerCredentials(Block):
     to instantiate clusters through Dask Gateway.
 
     Args:
-        subscription_key (str): A subscription key to access the full PC data catalog.
-        hub_api_token (str): The JupyterHub API token to instantiate clusters through Dask Gateway.
+        subscription_key (str, optional): A subscription key to access the full PC data catalog.
+        hub_api_token (str, optional): The JupyterHub API token to instantiate clusters through Dask Gateway.
 
     Example:
         Load stored Planetary Computer credentials:
