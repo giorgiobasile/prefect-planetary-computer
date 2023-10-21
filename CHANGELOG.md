@@ -17,9 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix pydantic imports to handle v2 support from Prefect - [#26](https://github.com/giorgiobasile/prefect-planetary-computer/pull/26)
-
 ### Security
+
+## 0.1.1
+
+Released on October 21th, 2023.
+
+### Fixed
+
+- Fix pydantic imports to handle v2 support from Prefect - [#26](https://github.com/giorgiobasile/prefect-planetary-computer/pull/26)
 
 ## 0.1.0
 
