@@ -2,7 +2,7 @@
 
 !!! warning
 
-    The Planetary Computer [has retired](https://github.com/microsoft/PlanetaryComputer/discussions/347) his computing environment, 
+    The Planetary Computer [has retired](https://github.com/microsoft/PlanetaryComputer/discussions/347) its computing environment, 
     which this extension helped Prefect users to work with. Therefore, the repository has been archived, and it is recommended to 
     directly use [pystac_client](https://pystac-client.readthedocs.io/en/stable/) to interact with the Data Catalog, which remains openly available.
 
