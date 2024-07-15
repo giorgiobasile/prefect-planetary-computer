@@ -483,7 +483,49 @@
 <h1 id="examples-catalog">Examples Catalog</h1>
 <p>Below is a list of examples for <code>prefect-planetary-computer</code>.</p>
 <h2 id="credentials-module"><a class="autorefs autorefs-internal" href="../credentials/#prefect_planetary_computer.credentials">Credentials Module</a></h2>
-<p>Get a configured PySTAC client with automatic asset signing:
+<p>Get a configured Dask Gateway client:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">example_get_gateway_flow</span><span class="p">():</span>
+    <span class="n">pc_credentials_block</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="p">(</span>
+        <span class="n">subscription_key</span> <span class="o">=</span> <span class="s2">&quot;sub-key&quot;</span><span class="p">,</span>
+        <span class="n">hub_api_token</span> <span class="o">=</span> <span class="s2">&quot;hub-token&quot;</span>
+    <span class="p">)</span>
+    <span class="n">gateway</span> <span class="o">=</span> <span class="n">pc_credentials_block</span><span class="o">.</span><span class="n">get_gateway</span><span class="p">()</span>
+
+    <span class="c1"># List available clusters</span>
+    <span class="n">clusters</span> <span class="o">=</span> <span class="n">gateway</span><span class="o">.</span><span class="n">list_clusters</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span>
+
+<span class="n">example_get_gateway_flow</span><span class="p">()</span>
+</code></pre></div>
+Instantiate a new cluster using PC Dask Gateway Server:
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dask.array</span> <span class="k">as</span> <span class="nn">da</span>
+<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">example_new_cluster_flow</span><span class="p">():</span>
+    <span class="n">pc_credentials_block</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create a Dask Gateway cluster with default configuration</span>
+    <span class="c1"># it will be automatically used for any subsequent dask compute</span>
+    <span class="n">cluster</span> <span class="o">=</span> <span class="n">pc_credentials_block</span><span class="o">.</span><span class="n">new_cluster</span><span class="p">()</span>
+
+    <span class="c1"># Scale the cluster to at most 10 workers</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">adapt</span><span class="p">(</span><span class="n">minimum</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Create a Dask array with 1 billion elements and sum them</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1000000000</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="n">example_new_cluster_flow</span><span class="p">()</span>
+</code></pre></div>
+Get a configured PySTAC client with automatic asset signing:
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
 <span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
 
@@ -527,48 +569,6 @@ Using a temporary PC Dask Gateway cluster:
     <span class="n">address</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
     <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;security&#39;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">security</span><span class="p">}</span>
 <span class="p">)</span>
-</code></pre></div>
-Instantiate a new cluster using PC Dask Gateway Server:
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dask.array</span> <span class="k">as</span> <span class="nn">da</span>
-<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_new_cluster_flow</span><span class="p">():</span>
-    <span class="n">pc_credentials_block</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Create a Dask Gateway cluster with default configuration</span>
-    <span class="c1"># it will be automatically used for any subsequent dask compute</span>
-    <span class="n">cluster</span> <span class="o">=</span> <span class="n">pc_credentials_block</span><span class="o">.</span><span class="n">new_cluster</span><span class="p">()</span>
-
-    <span class="c1"># Scale the cluster to at most 10 workers</span>
-    <span class="n">cluster</span><span class="o">.</span><span class="n">adapt</span><span class="p">(</span><span class="n">minimum</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-
-    <span class="c1"># Create a Dask array with 1 billion elements and sum them</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1000000000</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-
-    <span class="k">return</span> <span class="n">result</span>
-
-<span class="n">example_new_cluster_flow</span><span class="p">()</span>
-</code></pre></div>
-Get a configured Dask Gateway client:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_planetary_computer</span> <span class="kn">import</span> <span class="n">PlanetaryComputerCredentials</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_get_gateway_flow</span><span class="p">():</span>
-    <span class="n">pc_credentials_block</span> <span class="o">=</span> <span class="n">PlanetaryComputerCredentials</span><span class="p">(</span>
-        <span class="n">subscription_key</span> <span class="o">=</span> <span class="s2">&quot;sub-key&quot;</span><span class="p">,</span>
-        <span class="n">hub_api_token</span> <span class="o">=</span> <span class="s2">&quot;hub-token&quot;</span>
-    <span class="p">)</span>
-    <span class="n">gateway</span> <span class="o">=</span> <span class="n">pc_credentials_block</span><span class="o">.</span><span class="n">get_gateway</span><span class="p">()</span>
-
-    <span class="c1"># List available clusters</span>
-    <span class="n">clusters</span> <span class="o">=</span> <span class="n">gateway</span><span class="o">.</span><span class="n">list_clusters</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span>
-
-<span class="n">example_get_gateway_flow</span><span class="p">()</span>
 </code></pre></div></p>
 
 
